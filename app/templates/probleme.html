@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% include 'header.html' %}
+
+{% block head %}
+
+{% endblock %}
+
+
+{% block body %}
+
+
+<div class="jumbotron p-5">
+    <h2 class=text-light>Gestioneaza <b>{{tableName}}</b> <button type="button" class="btn btn-success float-end "
+            data-toggle="modal" data-target="#mymodal">ㅤㅤㅤㅤAdaugaㅤㅤㅤㅤ</button>
+    </h2>
+
+    <table class="table table-sm table-hover table-dark table-striped ">
+        <thead>
+            <tr>
+                {% for name in columnNames %}
+                <th scope="col">{{name}}</th>
+                {% endfor %}
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        {% for row in tableData %}
+        <tr>
+            {% for name in columnNames %}
+            <td>{{ row[name] }}</td>
+            {% endfor %}
+            <td>
+                <a class="btn btn-outline-warning btn-xs" data-toggle="modal"
+                    data-target="#modaledit{{row.id}}">&#9999</a>
+                <a class="btn btn-outline-danger btn-xs"
+                    onclick="return confirm('Are you sure you want to continue?')">&#128465 </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+
+
+{% endblock %}

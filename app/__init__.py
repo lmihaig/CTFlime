@@ -1,12 +1,12 @@
+from pathlib import Path
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from pathlib import Path
 
 
 # Create a file (in the main directory) named secrets.txt that has only your password on one line
 path = Path(__file__).parent.parent
 print(path)
-with open(f"{path}/\secrets.txt", "r") as secretfile:
+with open(f"{path}\secrets.txt", "r", encoding="utf-8") as secretfile:
     password = secretfile.readline()
 
 app = Flask(__name__, instance_relative_config=True)

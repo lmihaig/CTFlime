@@ -1,3 +1,9 @@
+
+table tr td, table tr th{
+    background-color: rgba(33, 37, 41, 0.9) !important;
+    text-align: center;
+}
+
 @keyframes move {
     100% {
         transform: translate3d(0, 0, 1px) rotate(360deg);
@@ -13,6 +19,8 @@
     background: #141315;
     overflow: hidden;
     z-index: -100;
+    position: fixed;
+    
 }
 
 .background span {
