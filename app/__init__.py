@@ -3,7 +3,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 
-with open(f"secrets.txt", "r", encoding="utf-8") as secretfile:
+with open("secrets.txt", "r", encoding="utf-8") as secretfile:
     password = secretfile.readline()
 
 app = Flask(__name__, instance_relative_config=True)

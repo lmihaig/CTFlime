@@ -1,7 +1,19 @@
-from msilib import Table
 from flask import render_template, request, redirect, url_for, session, flash
 from sqlalchemy.ext.automap import automap_base
 from app import app, db
+import json
+from jinja2.filters import FILTERS, environmentfilter
+import base64
+
+
+# b64encode for jinja2
+@environmentfilter
+def str_to_b64str(environment, value, attribute=None):
+    return base64.b64encode(value.encode("ascii")).decode('ascii')
+
+
+FILTERS['b64encode'] = str_to_b64str
+
 
 # dumb but easy fix to stop it from complaining about db.query without installing sqlalchemy addons
 # might break other things
@@ -20,18 +32,18 @@ Tables = {'tari': Base.classes.tari,
           }
 
 
-@app.context_processor
+@ app.context_processor
 def navbar_context():
     pages = [table for table in Tables.keys()]
     return {'pages': pages}
 
 
-@app.route('/')
+@ app.route('/')
 def Index():
     return render_template('index.html')
 
 
-@app.route('/tari')
+@ app.route('/tari')
 def tari():
     tableName = 'tari'
     session["tableName"] = tableName
@@ -121,32 +133,45 @@ def incercari():
     return render_template('masterfile.html', tableName=tableName, columnNames=columnNames, tableData=tableData)
 
 
-@app.route('/add', methods=['POST'])
+@ app.route('/add', methods=['POST'])
 def add():
     if request.method == 'POST':
         if "tableName" in session:
             try:
                 tableName = session.get("tableName")
                 table = Tables[tableName]
-
-                entry = table(**request.form)
+                requestdic = {key: None if val == "None" else val for key, val in request.form.items()}
+                entry = table(**requestdic)
 
                 db.session.add(entry)
                 db.session.commit()
                 flash("Adaugat cu succes!")
             except Exception as e:
                 flash(str(e))
-            finally:
-                return redirect(url_for(f'{tableName}'))
+
+            return redirect(url_for(f'{tableName}'))
         else:
             return redirect(url_for("index"))
 
 
-@app.route('/update')
+@ app.route('/update')
 def update():
-    return
+    return 1
 
 
-@app.route('/delete')
-def delete():
-    return
+@ app.route('/delete/<entity>')
+def delete(entity):
+    if "tableName" in session:
+        try:
+            entity = base64.b64decode(entity.encode('ascii')).decode('ascii')
+            entity = json.loads(f"{entity[:-1]}}}")
+            entity = {key: val for key, val in entity.items() if val != "None"}
+            tableName = session.get("tableName")
+            deletetable = f"db.session.query(Tables['{tableName}']).filter_by(**{entity}).delete()"
+            eval(deletetable)
+            db.session.commit()
+            flash("Sters cu succes!")
+        except Exception as e:
+            flash(str(e))
+
+        return redirect(url_for(f'{tableName}'))
