@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+<!-- {% include 'background.html' %} -->
+
+{% block head %}
+{% endblock %}
+
+
+{% block body %}
+
+<!-- Header -->
+<div class="container-fluid bg-dark ">
+    <div class="row">
+        <div class="col-2 align-self-center text-center">
+            <div class="dropdown left-centered">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Tabele
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        {% for table in pages %}
+                        <li><a class="dropdown-item" href="{{url_for(table)}}">{{table}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-2 align-self-center">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    Query-uri
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                    <li><a class="dropdown-item" href="#">test</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-7 align-self-center text-left">
+            <img src="{{url_for('static', filename='images/ctflime.svg')}}" width="52%" height="auto" />
+        </div>
+    </div>
+</div>
+
+
+<!-- Tables and contents -->
+<div class="jumbotron p-5">
+    <h2 class="text-light">Gestioneaza <b>{{tableName}}</b>
+        <button type="button" class="btn btn-success float-end mr-1" data-bs-toggle="modal"
+            data-bs-target="#add">ㅤㅤ&#x2795
+            Adaugaㅤㅤ</button>
+    </h2>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    {%if message == 'Adaugat cu succes!' %}
+    <div class="alert alert-success alert-dismissable" role="alert">
+        <button type="button" class="close" data-bs-dismiss="alert" aria-label="close">
+            <span aria-hidden="true">x</span>
+        </button>
+        {{message}}
+    </div>
+    {%else %}
+    <div class="alert alert-danger alert-dismissable" role="alert">
+        <button type="button" class="close" data-bs-dismiss="alert" aria-label="close">
+            <span aria-hidden="true">x</span>
+        </button>
+        {{message}}
+    </div>
+    {%endif %}
+    {% endfor %}
+
+    {% endif %}
+    {% endwith %}
+
+    <table class="table table-sm table-hover table-dark table-striped ">
+        <thead>
+            <tr>
+                {% for name in columnNames %}
+                <th scope="col" onclick=>{{name}}</th>
+                {% endfor %}
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in tableData %}
+            <tr>
+                {% for name in columnNames %}
+                <td>{{ row[name] }}</td>
+                {% endfor %}
+                <td>
+                    <a class="btn btn-outline-warning btn-xs" data-bs-toggle="modal"
+                        data-bs-target="#modaledit{{row.id}}">&#9999</a>
+                    <a class="btn btn-outline-danger btn-xs"
+                        onclick="return confirm('Are you sure you want to continue?')">&#128465 </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Add Employee-->
+<div id="add" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Adauga {{tableName}}</h4>
+            </div>
+            <div class="modal-body">
+                <form action="{{url_for('add')}}" method="POST">
+                    {% for name in columnNames %}
+                    <div class="form-group"> <label>{{name}}:</label>
+                        <input type="text" class="form-control" name={{name}} required="1">
+                    </div>
+                    {% endfor %}
+                    <div>ㅤ</div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit" value="submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+
+    </div>
+
+
+</div>
+
+{% endblock %}
