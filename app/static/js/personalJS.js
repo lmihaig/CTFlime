@@ -1,3 +1,4 @@
+// Function to place default data in the edit modal
 var edit = document.getElementById('editModal')
 editModal.addEventListener('show.bs.modal', function (event) {
     // Button that triggered the modal
@@ -21,3 +22,10 @@ editModal.addEventListener('show.bs.modal', function (event) {
     })
 
 })
+
+
+// Function to sort tables
+function onPageReady() {
+    new Tablesort(document.getElementById('main-table'));
+}
+document.addEventListener('DOMContentLoaded', onPageReady, false);

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-<!-- {% include 'background.html' %} -->
+{% include 'background.html' %}
 
 {% block head %}
 {% endblock %}
@@ -32,7 +32,8 @@
                     Query-uri
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                    <li><a class="dropdown-item" href="#">test</a></li>
+                    <li><a class="dropdown-item" href="user_country">User tari</a></li>
+                    <li><a class="dropdown-item" href="team_score">Echipe scor</a></li>
                 </ul>
             </div>
         </div>
@@ -48,8 +49,7 @@
     <h2 class="text-light">Gestioneaza <b>{{tableName}}</b>
         <!-- ADD -->
         <button type="button" class="btn btn-success float-end mr-1" data-bs-toggle="modal"
-            data-bs-target="#addModal">ㅤㅤ&#x2795
-            Adaugaㅤㅤ</button>
+            data-bs-target="#addModal">Adauga &#x2795</button>
     </h2>
 
     {% with messages = get_flashed_messages() %}
@@ -71,9 +71,9 @@
     {% endif %}
     {% endwith %}
 
-    <table class="table table-sm table-hover table-dark table-striped ">
+    <table id="main-table" class="table table-sm table-hover table-dark table-striped ">
         <thead>
-            <tr>
+            <tr data-sort-method="none">
                 {% for name in columnNames %}
                 <th scope="col" onclick=>{{name}}</th>
                 {% endfor %}
@@ -84,11 +84,13 @@
             {% for row in tableData %}
             {% set ns = namespace(identifyData = '{') %}
             <tr id={{row}}>
+
                 {% for name in columnNames %}
                 {% set ns.identifyData = ns.identifyData ~'"' ~name~'"' ~ ':' ~ '"'~row[name]~'"' ~','%}
                 <td>{{ row[name] }}</td>
                 {% endfor %}
-                <td>
+
+                <td width="6%">
                     {% set ns.identifyData = ns.identifyData | last_char_dic %}
                     {%set ns.identifyData = ns.identifyData | b64encode %}
                     <!-- UPDATE -->

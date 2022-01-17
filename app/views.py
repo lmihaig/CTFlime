@@ -141,6 +141,32 @@ def incercari():
     return render_template('masterfile.html', tableName=tableName, columnNames=columnNames, tableData=tableData)
 
 
+@app.route('/team_score')
+def queryhaving():
+
+    tableData = db.session.execute("""  SELECT echipe.echipa_nume, SUM(probleme.puncte) AS scor
+                                        FROM concursuri_ctf, probleme, incercari, echipe
+                                        WHERE echipe.echipa_nume=incercari.echipa_nume AND probleme.flag=incercari.incercare_flag AND incercari.incercare_timp BETWEEN concursuri_ctf.timp_inceput AND concursuri_ctf.timp_terminat
+                                        GROUP BY echipe.echipa_nume
+                                        HAVING scor > 0
+                                        ORDER BY scor desc;""").fetchall()
+
+    columnNames = ["Echipa", "Scor"]
+    print(tableData)
+    return render_template('queryresults.html', tableName="Scorul Echipelor", columnNames=columnNames, tableData=tableData)
+
+
+@app.route('/user_country')
+def queryselect():
+
+    tableData = db.session.execute("SELECT utilizatori.user_nume, tari.tara_nume                                        \
+                                   FROM utilizatori, echipe, tari                                                       \
+                                   WHERE utilizatori.echipa_nume=echipe.echipa_nume AND echipe.tara_tag=tari.tara_tag   \
+                                   ").fetchall()
+    columnNames = ["Utilizator", "Tara"]
+    return render_template('queryresults.html', tableName="Utilizatorii din fiecare tara", columnNames=columnNames, tableData=tableData)
+
+
 @ app.route('/add', methods=['POST'])
 def add():
     if request.method == 'POST':
