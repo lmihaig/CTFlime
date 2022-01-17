@@ -48,7 +48,7 @@
     <h2 class="text-light">Gestioneaza <b>{{tableName}}</b>
         <!-- ADD -->
         <button type="button" class="btn btn-success float-end mr-1" data-bs-toggle="modal"
-            data-bs-target="#add">ㅤㅤ&#x2795
+            data-bs-target="#addModal">ㅤㅤ&#x2795
             Adaugaㅤㅤ</button>
     </h2>
 
@@ -83,15 +83,17 @@
         <tbody>
             {% for row in tableData %}
             {% set ns = namespace(identifyData = '{') %}
-            <tr>
+            <tr id={{row}}>
                 {% for name in columnNames %}
                 {% set ns.identifyData = ns.identifyData ~'"' ~name~'"' ~ ':' ~ '"'~row[name]~'"' ~','%}
                 <td>{{ row[name] }}</td>
                 {% endfor %}
                 <td>
+                    {% set ns.identifyData = ns.identifyData | last_char_dic %}
                     {%set ns.identifyData = ns.identifyData | b64encode %}
                     <!-- UPDATE -->
-                    <a class="btn btn-outline-warning btn-xs" data-bs-toggle="modal" data-bs-target="#edit">&#9999</a>
+                    <a class="btn btn-outline-warning btn-xs" data-bs-toggle="modal" data-bs-target="#editModal"
+                        data-bs-rowvals={{ns.identifyData}}>&#9999</a>
 
 
                     <!-- DELETE -->
@@ -106,7 +108,7 @@
 </div>
 
 <!-- Modal Add -->
-<div id="add" class="modal fade" role="dialog">
+<div id="addModal" class="modal fade" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -116,7 +118,7 @@
                 <form action="{{url_for('add')}}" method="POST">
                     {% for name in columnNames %}
                     <div class="form-group"> <label>{{name}}:</label>
-                        <input type="text" class="form-control" name={{name}} required="1">
+                        <input type="text" class="form-control" name={{name}} value="" required="1">
                     </div>
                     {% endfor %}
                     <div>ㅤ</div>
@@ -129,13 +131,38 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
-
-
     </div>
-
-
 </div>
 
 <!-- Modal Edit -->
+<div id="editModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Editeaza {{tableName}}</h4>
+            </div>
+            <div class="modal-body">
+                <form action="{{url_for('update',)}}" method="POST">
+                    {% for name in columnNames %}
+                    <div class="form-group"> <label>{{name}}:</label>
+                        <input type="text" class="form-control" name={{name}} id={{name}}>
+                    </div>
+                    {% endfor %}
+                    <!--  SECRET NS -->
+                    <div>
+                        <input type="hidden" id="hiddenInfo" name="hiddenInfo">
+                        ㅤ
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit" value="submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

@@ -1,4 +1,5 @@
 from flask import render_template, request, redirect, url_for, session, flash
+from sqlalchemy import table
 from sqlalchemy.ext.automap import automap_base
 from app import app, db
 import json
@@ -11,9 +12,16 @@ import base64
 def str_to_b64str(environment, value, attribute=None):
     return base64.b64encode(value.encode("ascii")).decode('ascii')
 
+# fixing dictionary from masterfile
+
+
+@environmentfilter
+def last_char_dic(enviorment, value, attribute=None):
+    return value[:-1] + "}"
+
 
 FILTERS['b64encode'] = str_to_b64str
-
+FILTERS['last_char_dic'] = last_char_dic
 
 # dumb but easy fix to stop it from complaining about db.query without installing sqlalchemy addons
 # might break other things
@@ -139,9 +147,8 @@ def add():
         if "tableName" in session:
             try:
                 tableName = session.get("tableName")
-                table = Tables[tableName]
                 requestdic = {key: None if val == "None" else val for key, val in request.form.items()}
-                entry = table(**requestdic)
+                entry = Tables[tableName](**requestdic)
 
                 db.session.add(entry)
                 db.session.commit()
@@ -154,9 +161,34 @@ def add():
             return redirect(url_for("index"))
 
 
-@ app.route('/update')
+@ app.route('/update', methods=['POST'])
 def update():
-    return 1
+    if request.method == 'POST':
+        if "tableName" in session:
+            try:
+                print(request.form)
+                tableName = session.get("tableName")
+                table = Tables[tableName]
+                requestdic = request.form.to_dict()
+
+                entity = requestdic.pop("hiddenInfo")
+                entity = base64.b64decode(entity.encode('ascii')).decode('ascii')
+                entity = json.loads(entity)
+
+                requestdic = {key: None if val == "None" else val for key, val in requestdic.items()}
+
+                updatetable = db.session.query(table).filter_by(**entity).first()
+                for key, val in requestdic.items():
+                    setattr(updatetable, key, val)
+
+                db.session.commit()
+                flash("Updatat cu succes!")
+            except Exception as e:
+                flash(str(e))
+
+            return redirect(url_for(f'{tableName}'))
+        else:
+            return redirect(url_for("index"))
 
 
 @ app.route('/delete/<entity>')
@@ -164,11 +196,11 @@ def delete(entity):
     if "tableName" in session:
         try:
             entity = base64.b64decode(entity.encode('ascii')).decode('ascii')
-            entity = json.loads(f"{entity[:-1]}}}")
+            entity = json.loads(entity)
             entity = {key: val for key, val in entity.items() if val != "None"}
             tableName = session.get("tableName")
-            deletetable = f"db.session.query(Tables['{tableName}']).filter_by(**{entity}).delete()"
-            eval(deletetable)
+            table = Tables[tableName]
+            db.session.query(table).filter_by(**entity).delete()
             db.session.commit()
             flash("Sters cu succes!")
         except Exception as e:
