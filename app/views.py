@@ -167,7 +167,33 @@ def queryselect():
     return render_template('queryresults.html', tableName="Utilizatorii din fiecare tara", columnNames=columnNames, tableData=tableData)
 
 
-@ app.route('/add', methods=['POST'])
+@app.route('/rezolvari_corecte')
+def viewcomplex():
+    db.session.execute("""
+                        CREATE OR REPLACE VIEW probleme_rezolvate (echipa_nume, problema_id, problema_nume, puncte, incercare_timp)
+                        AS SELECT echipe.echipa_nume, probleme.problema_id, probleme.problema_nume, probleme.puncte, incercari.incercare_timp
+                        FROM echipe, probleme, concursuri_ctf, incercari
+                        WHERE echipe.echipa_nume=incercari.echipa_nume AND probleme.flag=incercari.incercare_flag AND incercari.incercare_timp BETWEEN concursuri_ctf.timp_inceput AND concursuri_ctf.timp_terminat;
+                        """)
+    tableData = db.session.execute("SELECT * FROM probleme_rezolvate").fetchall()
+    columnNames = tableData[0].keys()
+    return render_template('queryresults.html', tableName="Problemele rezolvate corect", columnNames=columnNames, tableData=tableData)
+
+
+@app.route('/upcoming')
+def viewsimple():
+    db.session.execute("""
+                        CREATE OR REPLACE VIEW concursuri_neterminate (concurs_id, concurs_nume, concurs_editie, timp_inceput, timp_terminat)
+                        AS SELECT concurs_id, concurs_nume, concurs_editie, timp_inceput, timp_terminat
+                        FROM concursuri_ctf
+                        WHERE timp_terminat > CURRENT_TIMESTAMP;
+                        """)
+    tableData = db.session.execute("SELECT * FROM concursuri_neterminate").fetchall()
+    columnNames = tableData[0].keys()
+    return render_template('masterfile.html', tableName="Concursuri neterminate", columnNames=columnNames, tableData=tableData)
+
+
+@app.route('/add', methods=['POST'])
 def add():
     if request.method == 'POST':
         if "tableName" in session:
