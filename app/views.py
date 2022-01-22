@@ -42,8 +42,8 @@ Tables = {'tari': Base.classes.tari,
 
 @ app.context_processor
 def navbar_context():
-    pages = [table for table in Tables.keys()]
-    return {'pages': pages}
+    tabele = [table for table in Tables.keys()]
+    return {'tabele': tabele}
 
 
 @ app.route('/')

@@ -1,0 +1,43 @@
+{% block head %}
+{% endblock %}
+
+
+{% block body %}
+<!-- Header -->
+<div class="container-fluid bg-dark ">
+    <div class="row">
+        <div class="col-2 align-self-center text-center">
+            <div class="dropdown left-centered">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Tabele
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        {% for table in tabele %}
+                        <li><a class="dropdown-item" href="{{url_for(table)}}">{{table}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-2 align-self-center">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    Query-uri si Vizualizari
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                    <li><a class="dropdown-item" href="user_country">Query User tari</a></li>
+                    <li><a class="dropdown-item" href="team_score">Query Echipe scor</a></li>
+                    <li><a class="dropdown-item" href="upcoming">Vizualizare Concursuri upcoming</a></li>
+                    <li><a class="dropdown-item" href="rezolvari_corecte">Vizualizare Rezolvari corecte</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-7 align-self-center text-left">
+            <img src="{{url_for('static', filename='images/ctflime.svg')}}" width="52%" height="auto" />
+        </div>
+    </div>
+</div>
+{% endblock %}
