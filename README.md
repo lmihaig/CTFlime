@@ -8,5 +8,5 @@
 
     TODO:
     - data sanitization
-    - sortable tables in query pages
-    - views
+    - fix simple view lmd
+    - fix sorting dates
