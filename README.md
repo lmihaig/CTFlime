@@ -8,5 +8,3 @@
 
     TODO:
     - data sanitization
-    - sortable tables in query pages
-    - views
