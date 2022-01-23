@@ -9,4 +9,3 @@
     TODO:
     - data sanitization
     - fix simple view lmd
-    - fix sorting dates
