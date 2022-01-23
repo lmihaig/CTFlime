@@ -8,4 +8,4 @@
 
     TODO:
     - data sanitization
-    - fix simple view lmd
+

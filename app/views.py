@@ -1,5 +1,6 @@
+from msilib.schema import tables
 from flask import render_template, request, redirect, url_for, session, flash
-from sqlalchemy import table
+from sqlalchemy import MetaData, engine, table, create_engine, Column, Integer, Table
 from sqlalchemy.ext.automap import automap_base
 from app import app, db
 import json
@@ -165,6 +166,8 @@ def queryhaving():
 
     columnNames = ["Echipa", "Scor"]
     print(tableData)
+
+    db.session.commit()
     return render_template('queryresults.html', tableName="Scorul Echipelor", columnNames=columnNames, tableData=tableData)
 
 
@@ -176,11 +179,13 @@ def queryselect():
                                    WHERE utilizatori.echipa_nume=echipe.echipa_nume AND echipe.tara_tag=tari.tara_tag   \
                                    ").fetchall()
     columnNames = ["Utilizator", "Tara"]
+
+    db.session.commit()
     return render_template('queryresults.html', tableName="Utilizatorii din fiecare tara", columnNames=columnNames, tableData=tableData)
 
 
 @app.route('/rezolvari_corecte')
-def viewcomplex():
+def rezolvari_corecte():
     """ a complex view that shows all the eligible solves for all teams and the problem that the solve was for """
     db.session.execute("""
                         CREATE OR REPLACE VIEW probleme_rezolvate (echipa_nume, problema_id, problema_nume, puncte, incercare_timp)
@@ -188,22 +193,42 @@ def viewcomplex():
                         FROM echipe, probleme, concursuri_ctf, incercari
                         WHERE echipe.echipa_nume=incercari.echipa_nume AND probleme.flag=incercari.incercare_flag AND incercari.incercare_timp BETWEEN concursuri_ctf.timp_inceput AND concursuri_ctf.timp_terminat;
                         """)
-    tableData = db.session.execute("SELECT * FROM probleme_rezolvate").fetchall()
-    columnNames = tableData[0].keys()
+    try:
+        tableData = db.session.execute("SELECT * FROM probleme_rezolvate").fetchall()
+        columnNames = tableData[0].keys()
+    except:
+        tableData = []
+        columnNames = ""
+
+    db.session.commit()
     return render_template('queryresults.html', tableName="Problemele rezolvate corect", columnNames=columnNames, tableData=tableData)
 
 
-@app.route('/upcoming')
-def viewsimple():
+@app.route('/concursuri_neterminate')
+def concursuri_neterminate():
     """ a simple view that shows all the contests that have yet to start or are not yet finished """
+    session["tableName"] = "concursuri_neterminate"
     db.session.execute("""
                         CREATE OR REPLACE VIEW concursuri_neterminate (concurs_id, concurs_nume, concurs_editie, timp_inceput, timp_terminat)
                         AS SELECT concurs_id, concurs_nume, concurs_editie, timp_inceput, timp_terminat
                         FROM concursuri_ctf
                         WHERE timp_terminat > CURRENT_TIMESTAMP;
                         """)
-    tableData = db.session.execute("SELECT * FROM concursuri_neterminate").fetchall()
-    columnNames = tableData[0].keys()
+    try:
+        tableData = db.session.execute("SELECT * FROM concursuri_neterminate").fetchall()
+        columnNames = tableData[0].keys()
+    except:
+        tableData = []
+        columnNames = ""
+
+    if getattr(Base.classes, "concursuri_neterminate", None) == None:
+        try:
+            tabel_concursuri_neterminate = Table('concursuri_neterminate', Base.metadata, Column('concurs_id', Integer, primary_key=True), autoload=True, autoload_with=db.engine, extend_existing=True)
+            Base.prepare(db.engine, reflect=True)
+            Tables.update(concursuri_neterminate=Base.classes.concursuri_neterminate)
+        except Exception as e:
+            flash(str(e))
+    db.session.commit()
     return render_template('masterfile.html', tableName="Concursuri neterminate", columnNames=columnNames, tableData=tableData)
 
 
