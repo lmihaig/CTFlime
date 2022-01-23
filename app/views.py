@@ -7,23 +7,22 @@ from jinja2.filters import FILTERS, environmentfilter
 import base64
 
 
-# b64encode for jinja2
 @environmentfilter
 def str_to_b64str(environment, value, attribute=None):
+    """ b64encode for jinja2 """
     return base64.b64encode(value.encode("ascii")).decode('ascii')
-
-# fixing dictionary from masterfile
 
 
 @environmentfilter
 def last_char_dic(enviorment, value, attribute=None):
+    """ fixing dictionary from masterfile by removing trailing ',' and appending '}' """
     return value[:-1] + "}"
 
 
 FILTERS['b64encode'] = str_to_b64str
 FILTERS['last_char_dic'] = last_char_dic
 
-# dumb but easy fix to stop it from complaining about db.query without installing sqlalchemy addons
+# quick fix to stop it from complaining about db.query without installing sqlalchemy addons
 # might break other things
 # pylint: disable=no-member
 Base = automap_base()
@@ -42,17 +41,20 @@ Tables = {'tari': Base.classes.tari,
 
 @ app.context_processor
 def navbar_context():
+    """ gives access to all the table names globally """
     tabele = [table for table in Tables.keys()]
     return {'tabele': tabele}
 
 
 @ app.route('/')
 def Index():
+    """ default route """
     return render_template('index.html')
 
 
 @ app.route('/tari')
 def tari():
+    """ route for tari table """
     tableName = 'tari'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -63,6 +65,7 @@ def tari():
 
 @ app.route('/echipe')
 def echipe():
+    """ route for echipe table """
     tableName = 'echipe'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -73,6 +76,7 @@ def echipe():
 
 @ app.route('/utilizatori')
 def utilizatori():
+    """ route for utilizatori table """
     tableName = 'utilizatori'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -83,6 +87,7 @@ def utilizatori():
 
 @ app.route('/autori')
 def autori():
+    """ route for autori table """
     tableName = 'autori'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -93,6 +98,7 @@ def autori():
 
 @ app.route('/concursuri_ctf')
 def concursuri_ctf():
+    """ route for concursuri_ctf table """
     tableName = 'concursuri_ctf'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -103,6 +109,7 @@ def concursuri_ctf():
 
 @ app.route('/probleme')
 def probleme():
+    """ route for probleme table """
     tableName = 'probleme'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -113,6 +120,7 @@ def probleme():
 
 @ app.route('/rezolvari')
 def rezolvari():
+    """ route for rezolvari table """
     tableName = 'rezolvari'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -123,6 +131,7 @@ def rezolvari():
 
 @ app.route('/servere')
 def servere():
+    """ route for servere table """
     tableName = 'servere'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -133,6 +142,7 @@ def servere():
 
 @ app.route('/incercari')
 def incercari():
+    """ route for incercari table """
     tableName = 'incercari'
     session["tableName"] = tableName
     table = Tables[tableName]
@@ -143,6 +153,8 @@ def incercari():
 
 @app.route('/team_score')
 def queryhaving():
+    """ a query using a GROUP BY and HAVING clause that returns all the teams and their total score, for a problem to be included in a 
+    team's score the team needs to have submitted its solve during the contest and the flag must match the challenge's flag """
 
     tableData = db.session.execute("""  SELECT echipe.echipa_nume, SUM(probleme.puncte) AS scor
                                         FROM concursuri_ctf, probleme, incercari, echipe
@@ -158,7 +170,7 @@ def queryhaving():
 
 @app.route('/user_country')
 def queryselect():
-
+    """ a simple query with only a WHERE clause that returns all the users that have chosent o represent a country and their specific country """
     tableData = db.session.execute("SELECT utilizatori.user_nume, tari.tara_nume                                        \
                                    FROM utilizatori, echipe, tari                                                       \
                                    WHERE utilizatori.echipa_nume=echipe.echipa_nume AND echipe.tara_tag=tari.tara_tag   \
@@ -169,6 +181,7 @@ def queryselect():
 
 @app.route('/rezolvari_corecte')
 def viewcomplex():
+    """ a complex view that shows all the eligible solves for all teams and the problem that the solve was for """
     db.session.execute("""
                         CREATE OR REPLACE VIEW probleme_rezolvate (echipa_nume, problema_id, problema_nume, puncte, incercare_timp)
                         AS SELECT echipe.echipa_nume, probleme.problema_id, probleme.problema_nume, probleme.puncte, incercari.incercare_timp
@@ -182,6 +195,7 @@ def viewcomplex():
 
 @app.route('/upcoming')
 def viewsimple():
+    """ a simple view that shows all the contests that have yet to start or are not yet finished """
     db.session.execute("""
                         CREATE OR REPLACE VIEW concursuri_neterminate (concurs_id, concurs_nume, concurs_editie, timp_inceput, timp_terminat)
                         AS SELECT concurs_id, concurs_nume, concurs_editie, timp_inceput, timp_terminat
@@ -195,6 +209,7 @@ def viewsimple():
 
 @app.route('/add', methods=['POST'])
 def add():
+    """ modular add route that works for all tables """
     if request.method == 'POST':
         if "tableName" in session:
             try:
@@ -215,6 +230,7 @@ def add():
 
 @ app.route('/update', methods=['POST'])
 def update():
+    """ modular update route that works for all tables """
     if request.method == 'POST':
         if "tableName" in session:
             try:
@@ -245,6 +261,7 @@ def update():
 
 @ app.route('/delete/<entity>')
 def delete(entity):
+    """ modular delete route that works for all tables """
     if "tableName" in session:
         try:
             entity = base64.b64decode(entity.encode('ascii')).decode('ascii')
