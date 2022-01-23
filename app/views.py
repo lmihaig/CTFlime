@@ -1,6 +1,5 @@
-from msilib.schema import tables
 from flask import render_template, request, redirect, url_for, session, flash
-from sqlalchemy import MetaData, engine, table, create_engine, Column, Integer, Table
+from sqlalchemy import Column, Integer, Table
 from sqlalchemy.ext.automap import automap_base
 from app import app, db
 import json
@@ -43,7 +42,7 @@ Tables = {'tari': Base.classes.tari,
 @ app.context_processor
 def navbar_context():
     """ gives access to all the table names globally """
-    tabele = [table for table in Tables.keys()]
+    tabele = [table for table in Tables if table != "concursuri_neterminate"]
     return {'tabele': tabele}
 
 
@@ -165,7 +164,6 @@ def queryhaving():
                                         ORDER BY scor desc;""").fetchall()
 
     columnNames = ["Echipa", "Scor"]
-    print(tableData)
 
     db.session.commit()
     return render_template('queryresults.html', tableName="Scorul Echipelor", columnNames=columnNames, tableData=tableData)
@@ -214,12 +212,6 @@ def concursuri_neterminate():
                         FROM concursuri_ctf
                         WHERE timp_terminat > CURRENT_TIMESTAMP;
                         """)
-    try:
-        tableData = db.session.execute("SELECT * FROM concursuri_neterminate").fetchall()
-        columnNames = tableData[0].keys()
-    except:
-        tableData = []
-        columnNames = ""
 
     if getattr(Base.classes, "concursuri_neterminate", None) == None:
         try:
@@ -228,6 +220,8 @@ def concursuri_neterminate():
             Tables.update(concursuri_neterminate=Base.classes.concursuri_neterminate)
         except Exception as e:
             flash(str(e))
+    tableData = db.session.execute("SELECT * FROM concursuri_neterminate").fetchall()
+    columnNames = Tables["concursuri_neterminate"].__table__.columns.keys()
     db.session.commit()
     return render_template('masterfile.html', tableName="Concursuri neterminate", columnNames=columnNames, tableData=tableData)
 
@@ -239,7 +233,8 @@ def add():
         if "tableName" in session:
             try:
                 tableName = session.get("tableName")
-                requestdic = {key: None if val == "None" else val for key, val in request.form.items()}
+                requestdic = {key: None if val == "None" or val == "" else val for key, val in request.form.items()}
+
                 entry = Tables[tableName](**requestdic)
 
                 db.session.add(entry)
@@ -259,7 +254,6 @@ def update():
     if request.method == 'POST':
         if "tableName" in session:
             try:
-                print(request.form)
                 tableName = session.get("tableName")
                 table = Tables[tableName]
                 requestdic = request.form.to_dict()
@@ -267,9 +261,9 @@ def update():
                 entity = requestdic.pop("hiddenInfo")
                 entity = base64.b64decode(entity.encode('ascii')).decode('ascii')
                 entity = json.loads(entity)
+                entity = {key: None if val == "None" else val for key, val in entity.items()}
 
-                requestdic = {key: None if val == "None" else val for key, val in requestdic.items()}
-
+                requestdic = {key: None if val == "None" or val == "" else val for key, val in requestdic.items()}
                 updatetable = db.session.query(table).filter_by(**entity).first()
                 for key, val in requestdic.items():
                     setattr(updatetable, key, val)
